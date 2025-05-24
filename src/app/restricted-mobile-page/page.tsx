@@ -9,16 +9,6 @@ export default function MobileView() {
       <p style={{ fontSize: "16px", marginBottom: "20px" }}>
         This page is designed for mobile users.
       </p>
-      {/* <button
-        style={{
-          padding: "10px 20px",
-          borderRadius: "8px",
-          background: "#0070f3",
-          color: "white",
-        }}
-      >
-        Tap Me
-      </button> */}
     </div>
   );
 }

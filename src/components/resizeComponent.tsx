@@ -7,7 +7,7 @@ const ResponsiveRedirect = () => {
 
   useEffect(() => {
     if (window.innerWidth <= 768) {
-      router.push("/mobile-page"); // Change to your target page
+      router.push("/restricted-mobile-page"); // Change to your target page
     }
   }, []);
 
