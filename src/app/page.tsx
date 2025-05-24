@@ -1,15 +1,12 @@
 "use client";
 
 import styles from "./page.module.css";
-import dynamic from "next/dynamic";
 import StressStudyAfter from "../../public/assets/study-after.gif";
 import StressStudy from "../../public/assets/study-before.gif";
 import ResponsiveRedirect from "../components/resizeComponent";
 import Clock from "../components/Clock";
 import { useState } from "react";
-const LottieWrapper = dynamic(() => import("../components/LottieWrapper"), {
-  ssr: false,
-});
+
 interface TimerValue {
   countDown: number;
   restTime: number;
@@ -67,7 +64,7 @@ export default function Home() {
       <ResponsiveRedirect />
       <div className={styles.page}>
         <div className={styles.overlayPage}>
-          <h1>StudyTimer do you prefer: {showClock.toString()}</h1>
+          <h1>StudyTimer do you prefer:</h1>
           <div className={styles.buttonGrp}>
             {timerGroup.map((i: TimerType, ind: number) => (
               <button onClick={() => handleTimer(ind)} key={ind}>
