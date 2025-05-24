@@ -1,0 +1,111 @@
+"use client";
+
+import styles from "./page.module.css";
+import dynamic from "next/dynamic";
+import StressStudyAfter from "../../public/assets/study-after.gif";
+import StressStudy from "../../public/assets/study-before.gif";
+import StressStudyBefore from "../../public/assets/study-lottie-before.json";
+import ResponsiveRedirect from "../components/resizeComponent";
+import Clock from "../components/Clock";
+import Loading from "../components/Loading";
+import { ReactNode, useState } from "react";
+const LottieWrapper = dynamic(() => import("../components/LottieWrapper"), {
+  ssr: false,
+});
+interface IsLoadingType {
+  isLoading?: boolean;
+}
+interface TimerValue {
+  countDown: number;
+  restTime: number;
+}
+
+interface TimerType {
+  text: string;
+  val: TimerValue;
+}
+
+export default function Home() {
+  const [selection, setSelection] = useState<TimerType>();
+  const [isRest, setIsRest] = useState<Boolean>(false);
+  const [showClock, setShowClock] = useState<Boolean>(false);
+  const [isLoadingTimer, setIsLoadingTimer] = useState<boolean>(false);
+  const timerGroup = [
+    {
+      text: "25 mins x 5 mins",
+      val: {
+        countDown: 25,
+        restTime: 5,
+      },
+    },
+    {
+      text: "25 mins x 10 mins",
+      val: {
+        countDown: 25,
+        restTime: 10,
+      },
+    },
+    {
+      text: "25 mins x 15 mins",
+      val: {
+        countDown: 25,
+        restTime: 15,
+      },
+    },
+    {
+      text: "Custom",
+      val: {
+        countDown: 0,
+        restTime: 0,
+      },
+    },
+  ];
+
+  const handleTimer = (ind: number) => {
+    setSelection(timerGroup[ind]);
+    setShowClock(true);
+  };
+  const handleRest = (val: boolean) => {
+    setIsRest(val);
+  };
+  const handleShowLoading = (val: boolean) => {
+    setIsLoadingTimer(val);
+  }
+  return (
+    <>
+      <ResponsiveRedirect />
+      <Loading isLoading={isLoadingTimer} />
+      <div className={styles.page}>
+        <div className={styles.overlayPage}>
+          <h1>StudyTimer do you prefer: {showClock.toString()}</h1>
+          <div className={styles.buttonGrp}>
+            {timerGroup.map((i: TimerType, ind: number) => (
+              <button onClick={() => handleTimer(ind)} key={ind}>
+                {i.text}
+              </button>
+            ))}
+          </div>
+          {/* <div className={styles.imgContainer}>
+            <div className={styles.sideIcon}></div>
+          </div> */}
+
+          <div className={styles.groupContainer}>
+            {showClock ? (
+              <>
+                <Clock
+                  TimerData={selection}
+                  IsRest={handleRest}
+                  ShowLoading={handleShowLoading}
+                />
+                {isRest ? <img src={StressStudyAfter.src} alt="stress-study" /> : <img src={StressStudy.src} alt="stress-study" />}
+              </>
+            ) : (
+              <img src={StressStudy.src} alt="stress-study" />
+            )}
+          </div>
+          {/* <LottieWrapper animationData={StressStudy}/> */}
+        </div>
+      </div>
+    </>
+  );
+}
