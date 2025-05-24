@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import styles from "../app/page.module.css";
+import Loading from "./Loading";
 
 interface APIRandomType {
   text: string;
@@ -21,10 +22,9 @@ interface TimerType {
 interface ClockProps {
   TimerData?: TimerType;
   IsRest?: (val: boolean) => void;
-  ShowLoading?: (val: boolean) => void;
 }
 
-export default function Clock({ TimerData, IsRest, ShowLoading }: ClockProps) {
+export default function Clock({ TimerData, IsRest }: ClockProps) {
   const [isClient, setIsClient] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -32,7 +32,6 @@ export default function Clock({ TimerData, IsRest, ShowLoading }: ClockProps) {
   const [seconds, setSeconds] = useState(0);
   const [countDown, setCountDown] = useState(0);
   const [quotes, setQuotes] = useState<APIRandomType>();
-  const [openQuote, setOpenQuote] = useState(false);
   const [isInRest, setIsInRest] = useState(false);
   const [cycleCount, setCycleCount] = useState(0);
 
@@ -54,7 +53,6 @@ export default function Clock({ TimerData, IsRest, ShowLoading }: ClockProps) {
     clearInterval(quoteTimerRef.current!);
     setIsRunning(false);
     setIsPaused(true);
-    setOpenQuote(false);
     setTimeout(() => IsRest?.(true), 0);
   };
 
@@ -73,7 +71,6 @@ export default function Clock({ TimerData, IsRest, ShowLoading }: ClockProps) {
     setCountDown(0);
     setCycleCount(0);
     setIsInRest(false);
-    setOpenQuote(false);
   };
 
   const handleStart = (timer: number, min: number, sec: number) => {
@@ -82,7 +79,6 @@ export default function Clock({ TimerData, IsRest, ShowLoading }: ClockProps) {
     setCountDown(totalSeconds);
     setIsRunning(true);
     setIsPaused(false);
-    setOpenQuote(true);
     fetchMotiveQuote();
 
     if (timerRef.current) clearInterval(timerRef.current);
@@ -97,7 +93,6 @@ export default function Clock({ TimerData, IsRest, ShowLoading }: ClockProps) {
           clearInterval(quoteTimerRef.current!);
           setIsRunning(false);
           setIsPaused(false);
-          setOpenQuote(false);
 
           if (TimerData?.text !== "Custom") {
             if (!isInRest && REST_TIME.current > 0) {
@@ -147,22 +142,21 @@ export default function Clock({ TimerData, IsRest, ShowLoading }: ClockProps) {
     if (isClient && TimerData?.val?.restTime) {
       REST_TIME.current = TimerData.val.restTime * 60;
     }
-  }, [isClient, TimerData]);
-
-  useEffect(() => {
     if (TimerData?.val.countDown && TimerData.text !== "Custom") {
       setCycleCount(0);
       setIsInRest(false);
       handleStart(TimerData.val.countDown, 0, 0);
     }
-  }, [TimerData]);
+  }, [isClient, TimerData]);
 
   useEffect(() => {
     isRunningRef.current = isRunning;
   }, [isRunning]);
 
   const formatCountdown = (seconds: number) => {
-    const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+    const m = Math.floor(seconds / 60)
+      .toString()
+      .padStart(2, "0");
     const s = (seconds % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
   };
@@ -230,8 +224,14 @@ export default function Clock({ TimerData, IsRest, ShowLoading }: ClockProps) {
       )}
       {quotes && isRunning && (
         <div className={styles.quoteBox}>
-          <p className={styles.quoteText}>“{quotes.text}”</p>
-          <p className={styles.quoteAuthor}>— {quotes.author}</p>
+          {!Object.keys(quotes).length ? (
+            <Loading/>
+          ) : (
+            <>
+              <p className={styles.quoteText}>“{quotes.text}”</p>
+              <p className={styles.quoteAuthor}>— {quotes.author}</p>
+            </>
+          )}
         </div>
       )}
     </div>

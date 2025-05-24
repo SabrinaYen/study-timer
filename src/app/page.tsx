@@ -4,17 +4,12 @@ import styles from "./page.module.css";
 import dynamic from "next/dynamic";
 import StressStudyAfter from "../../public/assets/study-after.gif";
 import StressStudy from "../../public/assets/study-before.gif";
-import StressStudyBefore from "../../public/assets/study-lottie-before.json";
 import ResponsiveRedirect from "../components/resizeComponent";
 import Clock from "../components/Clock";
-import Loading from "../components/Loading";
-import { ReactNode, useState } from "react";
+import { useState } from "react";
 const LottieWrapper = dynamic(() => import("../components/LottieWrapper"), {
   ssr: false,
 });
-interface IsLoadingType {
-  isLoading?: boolean;
-}
 interface TimerValue {
   countDown: number;
   restTime: number;
@@ -29,7 +24,6 @@ export default function Home() {
   const [selection, setSelection] = useState<TimerType>();
   const [isRest, setIsRest] = useState<Boolean>(false);
   const [showClock, setShowClock] = useState<Boolean>(false);
-  const [isLoadingTimer, setIsLoadingTimer] = useState<boolean>(false);
   const timerGroup = [
     {
       text: "25 mins x 5 mins",
@@ -68,13 +62,9 @@ export default function Home() {
   const handleRest = (val: boolean) => {
     setIsRest(val);
   };
-  const handleShowLoading = (val: boolean) => {
-    setIsLoadingTimer(val);
-  }
   return (
     <>
       <ResponsiveRedirect />
-      <Loading isLoading={isLoadingTimer} />
       <div className={styles.page}>
         <div className={styles.overlayPage}>
           <h1>StudyTimer do you prefer: {showClock.toString()}</h1>
@@ -85,17 +75,12 @@ export default function Home() {
               </button>
             ))}
           </div>
-          {/* <div className={styles.imgContainer}>
-            <div className={styles.sideIcon}></div>
-          </div> */}
-
           <div className={styles.groupContainer}>
             {showClock ? (
               <>
                 <Clock
                   TimerData={selection}
                   IsRest={handleRest}
-                  ShowLoading={handleShowLoading}
                 />
                 {isRest ? <img src={StressStudyAfter.src} alt="stress-study" /> : <img src={StressStudy.src} alt="stress-study" />}
               </>
@@ -103,7 +88,6 @@ export default function Home() {
               <img src={StressStudy.src} alt="stress-study" />
             )}
           </div>
-          {/* <LottieWrapper animationData={StressStudy}/> */}
         </div>
       </div>
     </>

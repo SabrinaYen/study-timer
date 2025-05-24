@@ -6,15 +6,9 @@ interface IsLoadingType {
 }
 const Loading: FC<IsLoadingType> = ({ isLoading }) => {
   return (
-    <>
-      {isLoading ? (
-        <div className={styles.loading}>
-          <img src={LoadingGIF.src} alt="loading" />.
-        </div>
-      ) : (
-        <></>
-      )}
-    </>
+    <div className={styles.loading}>
+      <img src={LoadingGIF.src} alt="loading" />.
+    </div>
   );
 };
 export default Loading;
