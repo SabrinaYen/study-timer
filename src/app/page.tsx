@@ -75,15 +75,30 @@ export default function Home() {
           <div className={styles.groupContainer}>
             {showClock ? (
               <>
-                <Clock
-                  TimerData={selection}
-                  IsRest={handleRest}
-                />
-                {isRest ? <img src={StressStudyAfter.src} alt="stress-study" /> : <img src={StressStudy.src} alt="stress-study" />}
+                <Clock TimerData={selection} IsRest={handleRest} />
+                <div>
+                  {isRest ? (
+                    <img
+                      className={styles.StressStudyAfter}
+                      src={StressStudyAfter.src}
+                      alt="stress-study"
+                    />
+                  ) : (
+                    <img src={StressStudy.src} alt="stress-study" />
+                  )}
+                </div>
               </>
             ) : (
               <img src={StressStudy.src} alt="stress-study" />
             )}
+          </div>
+          <div className={styles.playerContainer}>
+            <iframe
+              className={styles.player}
+              src="https://open.spotify.com/embed/playlist/37i9dQZF1DWWQRwui0ExPn?utm_source=generator"
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="lazy"
+            ></iframe>
           </div>
         </div>
       </div>

@@ -41,42 +41,15 @@ export default function Clock({ TimerData, IsRest }: ClockProps) {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const quoteTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isRunningRef = useRef(false);
-
+  const customTimer = useRef<NodeJS.Timeout | null>(null);
   const fetchMotiveQuote = () => {
     fetch("/api/quotes/random")
       .then((res) => res.json())
       .then(setQuotes);
   };
 
-  const handlePause = () => {
-    clearInterval(timerRef.current!);
-    clearInterval(quoteTimerRef.current!);
-    setIsRunning(false);
-    setIsPaused(true);
-    setTimeout(() => IsRest?.(true), 0);
-  };
-
-  const handleResume = () => {
-    const min = Math.floor(countDown / 60);
-    const sec = countDown % 60;
-    handleStart(0, min, sec);
-    setTimeout(() => IsRest?.(false), 0);
-  };
-
-  const handleReset = () => {
-    clearInterval(timerRef.current!);
-    clearInterval(quoteTimerRef.current!);
-    setIsRunning(false);
-    setIsPaused(false);
-    setCountDown(0);
-    setCycleCount(0);
-    setIsInRest(false);
-  };
-
-  const handleStart = (timer: number, min: number, sec: number) => {
-    const totalSeconds = timer > 0 ? timer * 60 : min * 60 + sec;
-    if (!totalSeconds) return;
-    setCountDown(totalSeconds);
+  const startTimerFrom = (startingSeconds: number) => {
+    setCountDown(startingSeconds);
     setIsRunning(true);
     setIsPaused(false);
     fetchMotiveQuote();
@@ -96,22 +69,19 @@ export default function Clock({ TimerData, IsRest }: ClockProps) {
 
           if (TimerData?.text !== "Custom") {
             if (!isInRest && REST_TIME.current > 0) {
-              // Main countdown ended → start rest
               setIsInRest(true);
               setTimeout(() => IsRest?.(true), 0);
-              handleStart(REST_TIME.current, 0, 0);
+              startTimerFrom(REST_TIME.current);
             } else if (isInRest) {
               const nextCycle = cycleCount + 1;
               if (nextCycle < MAX_CYCLES) {
                 setCycleCount(nextCycle);
                 setIsInRest(false);
                 setTimeout(() => IsRest?.(false), 0);
-                handleStart(TimerData?.val?.countDown ?? 0, 0, 0);
+                startTimerFrom((TimerData?.val?.countDown ?? 0) * 60);
               } else {
-                // All 4 cycles complete
                 setIsInRest(false);
                 setTimeout(() => IsRest?.(false), 0);
-                console.log("✅ All 4 cycles completed.");
               }
             }
           } else {
@@ -130,11 +100,82 @@ export default function Clock({ TimerData, IsRest }: ClockProps) {
     }, 10000);
   };
 
+  const handleStart = (timer: number, min: number, sec: number) => {
+    const totalSeconds = timer > 0 ? timer * 60 : min * 60 + sec;
+    if (!totalSeconds) return;
+    startTimerFrom(totalSeconds);
+  };
+
+  const toggleStartPauseResume = (total:number,min:number,sec:number) => {
+    if (isRunning) {
+      setIsPaused(true);
+      setIsRunning(false);
+      clearInterval(customTimer.current!);
+      setTimeout(() => IsRest?.(true), 0);
+      return;
+    }
+    if (isPaused) {
+      // 🔹 Resume
+      setIsPaused(false);
+      setIsRunning(true);
+      setTimeout(() => IsRest?.(false), 0);
+      customTimer.current = setInterval(() => {
+        setCountDown((prev) => {
+          if (prev <= 1) {
+            clearInterval(customTimer.current!);
+            clearInterval(quoteTimerRef.current!);
+            setIsRunning(false);
+            setIsPaused(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      // Optional: resume quotes if needed
+      quoteTimerRef.current = setInterval(() => {
+        fetchMotiveQuote();
+      }, 10000);
+      return;
+    }
+    // 🔹 First Start
+    setCountDown(total)
+    setIsRunning(true);
+    setIsPaused(false);
+    customTimer.current = setInterval(() => {
+      setCountDown((prev) => {
+        if (prev <= 1) {
+          clearInterval(customTimer.current!);
+          clearInterval(quoteTimerRef.current!);
+          setIsRunning(false);
+          setIsPaused(false);
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    // Optional: start motivational quotes on first start
+    quoteTimerRef.current = setInterval(() => {
+      fetchMotiveQuote();
+    }, 10000);
+  };
+
+  const handleReset = () => {
+    clearInterval(timerRef.current!);
+    clearInterval(quoteTimerRef.current!);
+    setIsRunning(false);
+    setIsPaused(false);
+    setCountDown(0);
+    setCycleCount(0);
+    setIsInRest(false);
+  };
+
   useEffect(() => {
     setIsClient(true);
     return () => {
       clearInterval(timerRef.current!);
       clearInterval(quoteTimerRef.current!);
+      clearInterval(customTimer.current!); // ✅ Add this
     };
   }, []);
 
@@ -142,7 +183,17 @@ export default function Clock({ TimerData, IsRest }: ClockProps) {
     if (isClient && TimerData?.val?.restTime) {
       REST_TIME.current = TimerData.val.restTime * 60;
     }
-    if (TimerData?.val.countDown && TimerData.text !== "Custom") {
+    if (TimerData?.text === "Custom") {
+      setCountDown(0);
+      setMinutes(0);
+      setSeconds(0);
+      setIsInRest(false);
+      setIsPaused(false);
+      setIsRunning(false);
+      clearInterval(timerRef.current!);
+      clearInterval(quoteTimerRef.current!);
+      clearInterval(customTimer.current!);
+    } else if (TimerData?.val?.countDown) {
       setCycleCount(0);
       setIsInRest(false);
       handleStart(TimerData.val.countDown, 0, 0);
@@ -168,7 +219,7 @@ export default function Clock({ TimerData, IsRest }: ClockProps) {
       {TimerData.text === "Custom" ? (
         <>
           <div className={styles.editableTimerBox}>
-            {!isRunning ? (
+            {!isRunning && !isPaused ? (
               <>
                 <input
                   type="number"
@@ -196,20 +247,16 @@ export default function Clock({ TimerData, IsRest }: ClockProps) {
               </>
             ) : (
               <span className={styles.studyText}>
-                {countDown > 0 ? formatCountdown(countDown) : null}
+                {formatCountdown(countDown)}
               </span>
             )}
           </div>
           <div className={styles.buttonTimerGroup}>
             <button
               onClick={() => {
-                if (isRunning) {
-                  handlePause();
-                } else if (isPaused) {
-                  handleResume();
-                } else {
-                  handleStart(0, minutes, seconds);
-                }
+                const total = minutes * 60 + seconds;
+                if (total <= 0) return;
+                toggleStartPauseResume(total,minutes,seconds);
               }}
             >
               {isRunning ? "Pause" : isPaused ? "Resume" : "Start"}
@@ -225,7 +272,7 @@ export default function Clock({ TimerData, IsRest }: ClockProps) {
       {quotes && isRunning && (
         <div className={styles.quoteBox}>
           {!Object.keys(quotes).length ? (
-            <Loading/>
+            <Loading />
           ) : (
             <>
               <p className={styles.quoteText}>“{quotes.text}”</p>
