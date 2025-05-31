@@ -17,6 +17,7 @@
   height: 80%;
   max-height: 90%;
   border-radius: 150px;
+  position: relative;
 }
 .groupContainer {
   display: flex;
@@ -114,7 +115,6 @@
 }
 .loading::before {
   content: "";
-  /* background-color: var(--black); */
   opacity: 0.1;
   position: absolute;
   width: 100%;
@@ -168,9 +168,10 @@
   float: right;
   display: flex;
   width: calc(100% - 10%);
-  background: transparent;
-  background-color: transparent;
   justify-content: flex-end;
+  position: absolute;
+  bottom: 2.5rem;
+
 }
 .player {
   background-color: transparent;
