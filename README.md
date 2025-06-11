@@ -43,5 +43,3 @@ I created this project to:
 - Desktop View Only 
 ---
 
-## 📁 Folder Structure
-
